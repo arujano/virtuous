@@ -9,7 +9,7 @@ fn main() -> io::Result<()> {
     let mut script = ScriptBuilder::new();
 
     script.add_instruction(instructions::CALL_FUNCTION); // We want to call a function
-    script.add_bytes(b"add\0"); // Its name is "add"
+    script.add_bytes(b"add_ints\0"); // Its name is "add"
     script.add_bytes(&2u8.to_be_bytes()); // It needs 2 arguments
     script.add_instruction(instructions::ACCESS_LITERAL); // The first will be a literal
     script.add_instruction(instructions::TYPE_INT); // The literal will be an int
@@ -26,9 +26,12 @@ fn main() -> io::Result<()> {
     script.add_bytes(b"result_1\0"); // The location of the variable is "result_1"
     script.add_bytes(b"\0"); // The storage location is an empty string, which means we'll discard the result
 
+    script.add_instruction(instructions::FREE_MEMORY); // Afterwards, we want to free our allocated memory
+    script.add_bytes(b"result_1\0"); // That memory is stored at "result_1"
+
     let mut runtime = Runtime::new(script.get_binary()).unwrap();
 
-    runtime.add_native_function(b"add".to_vec(), AddFunction);
+    runtime.add_native_function(b"add_ints".to_vec(), AddFunction);
     runtime.add_native_function(b"print".to_vec(), PrintFunction);
 
     runtime.execute().unwrap();
